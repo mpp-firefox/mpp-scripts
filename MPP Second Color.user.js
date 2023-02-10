@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MPP Second Color
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  Ability to have a second color in MPP
 // @author       MPP Firefox
 // @match        https://multiplayerpiano.com/*
@@ -69,6 +69,8 @@ const _sc_init = () => {
             participant.nameDiv.style.background = `linear-gradient(${participant.color}, ${sc})`;
             participant.cursorDiv.getElementsByClassName("name")[0].style.background = `linear-gradient(${participant.color}, ${sc})`;
 
+            participant.nameDiv.title = "This user is using Second Color";
+
             if (_sc_colorInvalid(window.localStorage.getItem("secondColor"))) window.localStorage.setItem("secondColor", MPP.client.getOwnParticipant().color);
             let _sc = window.localStorage.getItem("secondColor");
 
@@ -90,7 +92,10 @@ const _sc_init = () => {
         participant.nameDiv.style.background = `linear-gradient(${fcolor}, ${scolor})`;
     });
 
-    const _sc_createButton = () => {
+    const _sc_createButtons = () => {
+        let br = document.createElement("br");
+        $("#rename p .text")[0].after(br);
+
         let button = document.createElement("input");
 
         let color = (window.localStorage.getItem("secondColor") === null || _sc_colorInvalid(window.localStorage.getItem("secondColor")))
@@ -104,9 +109,23 @@ const _sc_init = () => {
         button.setAttribute("name", "secondcolor");
 
         $("#rename p").append(button);
+
+        let _button = document.createElement("button");
+
+        _button.innerText = "Invert";
+        _button.setAttribute("class", "ugly-button");
+        _button.style = "margin-left: 10px; width: 50px; height: 27px; user-select: none";
+
+        _button.onclick = () => {
+            let ___yes = $("#rename p .color")[0].value;
+            $("#rename p .color")[0].value = button.value;
+            button.value = ___yes;
+        }
+
+        $("#rename p").append(_button);
     }
 
-    _sc_createButton();
+    _sc_createButtons();
 
 };
 
