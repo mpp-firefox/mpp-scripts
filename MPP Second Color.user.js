@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MPP Second Color
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Ability to have a second color in MPP
 // @author       MPP Firefox
 // @match        https://multiplayerpiano.com/*
@@ -91,9 +91,13 @@ const _sc_init = () => {
     const _sc_createButton = () => {
         let button = document.createElement("input");
 
+        let color = (window.localStorage.getItem("secondColor") === null || _sc_colorInvalid(window.localStorage.getItem("secondColor")))
+        ? MPP.client.getOwnParticipant().color : window.localStorage.getItem("secondColor");
+
         button.setAttribute("type", "color");
         button.setAttribute("class", "color");
         button.setAttribute("placeholder", "");
+        button.setAttribute("value", color);
         button.setAttribute("maxlength", 7);
         button.setAttribute("name", "secondcolor");
 
