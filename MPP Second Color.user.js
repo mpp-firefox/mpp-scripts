@@ -57,7 +57,7 @@ const _sc_init = () => {
 
     MPP.client.on('custom', msg => {
         if (msg.data.sc !== undefined) {
-            console.log(msg.data.sc, msg.p);
+            //console.log(msg.data.sc, msg.p);
             let sc = msg.data.sc;
             let participant = MPP.client.findParticipantById(msg.p);
 
