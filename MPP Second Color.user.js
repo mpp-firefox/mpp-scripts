@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MPP Second Color
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Ability to have a second color in MPP
 // @author       MPP Firefox
 // @match        https://multiplayerpiano.com/*
@@ -18,12 +18,13 @@
 
 const _sc_init = () => {
     console.log("MPP Second Color loaded!");
+    //if (window.localStorage.getItem("secondColor") === null) window.localStorage.setItem("secondColor", "#000000");
     let _sc_time = Date.now();
 
     const _sc_colorInvalid = sc => {
         if (typeof sc !== "string") console.log("isn't string.");
         if (!CSS.supports("color", sc)) console.log("isn't color.");
-        if (sc.length !== 7) console.log("isn't exact length.");
+        if (sc !== null || sc.length !== 7) console.log("isn't exact length.");
         return typeof sc !== "string" || !CSS.supports("color", sc) || sc.length !== 7;
     }
 
@@ -48,6 +49,7 @@ const _sc_init = () => {
 
     MPP.client.on('participant added', msg => {
         let sc = window.localStorage.getItem("secondColor");
+        if (sc === null) window.localStorage.setItem("secondColor", MPP.client.getOwnParticipant().color), sc = window.localStorage.getItem("secondColor");
         if (_sc_colorInvalid(sc)) sc = MPP.client.getOwnParticipant().color;
 
         _sc_sendColor(sc, false, msg._id, true);
