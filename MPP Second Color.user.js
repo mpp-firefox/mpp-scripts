@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MPP Second Color
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Ability to have a second color in MPP
 // @author       MPP Firefox
 // @match        https://multiplayerpiano.com/*
@@ -22,9 +22,9 @@ const _sc_init = () => {
     let _sc_time = Date.now();
 
     const _sc_colorInvalid = sc => {
-        if (typeof sc !== "string") console.log("isn't string.");
-        if (!CSS.supports("color", sc)) console.log("isn't color.");
-        if (sc !== null || sc.length !== 7) console.log("isn't exact length.");
+        //if (typeof sc !== "string") console.log("isn't string.");
+        //if (!CSS.supports("color", sc)) console.log("isn't color.");
+        //if (sc !== null || sc.length !== 7) console.log("isn't exact length.");
         return typeof sc !== "string" || !CSS.supports("color", sc) || sc.length !== 7;
     }
 
@@ -33,21 +33,23 @@ const _sc_init = () => {
 
         window.localStorage.setItem("secondColor", sc);
 
-        if (global) MPP.client.sendArray([{m: "custom", data: {sc: sc}, target: {mode: "subscribed"}}]);
+        if (global) MPP.client.sendArray([{m: "custom", data: {sc: sc, requestSc: req}, target: {mode: "subscribed"}}]);
         else MPP.client.sendArray([{m: "custom", data: {sc: sc, requestSc: req}, target: {mode: "id", id: user}}]);
     }
 
     MPP.client.on('hi', () => MPP.client.sendArray([{m: "+custom"}]));
 
     MPP.client.on('ch', () => {
-        if (_sc_colorInvalid(window.localStorage.getItem("secondColor"))) window.localStorage.setItem("secondColor", MPP.client.getOwnParticipant().color);
-        //_sc_sendColor(window.localStorage.getItem("secondColor"), true);
-        MPP.client.getOwnParticipant().nameDiv.style.background = `linear-gradient(${MPP.client.getOwnParticipant().color}, ${window.localStorage.getItem("secondColor")})`;
+        let sc = window.localStorage.getItem("secondColor");
+        if (sc === null) window.localStorage.setItem("secondColor", MPP.client.getOwnParticipant().color), sc = window.localStorage.getItem("secondColor");
+        if (_sc_colorInvalid(sc)) sc = MPP.client.getOwnParticipant().color;
 
-        //MPP.client.sendArray([{m: "custom", data: {requestSc: "pretty-please"}}]);
+        MPP.client.getOwnParticipant().nameDiv.style.background = `linear-gradient(${MPP.client.getOwnParticipant().color}, ${sc})`;
+
+        _sc_sendColor(sc, true, "", true);
     });
 
-    MPP.client.on('participant added', msg => {
+    MPP.client.on('p', msg => {
         let sc = window.localStorage.getItem("secondColor");
         if (sc === null) window.localStorage.setItem("secondColor", MPP.client.getOwnParticipant().color), sc = window.localStorage.getItem("secondColor");
         if (_sc_colorInvalid(sc)) sc = MPP.client.getOwnParticipant().color;
