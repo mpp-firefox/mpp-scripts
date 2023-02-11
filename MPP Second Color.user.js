@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MPP Second Color
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  Ability to have a second color in MPP
 // @author       MPP Firefox
 // @match        https://multiplayerpiano.com/*
@@ -17,14 +17,15 @@
 //
 
 const _sc_init = () => {
+    const _sc_version = "1.5";
+    let _sc_actualVersion;
+    window._sc_users = {};
+
     console.log("MPP Second Color loaded!");
+
     //if (window.localStorage.getItem("secondColor") === null) window.localStorage.setItem("secondColor", "#000000");
-    let _sc_time = Date.now();
 
     const _sc_colorInvalid = sc => {
-        //if (typeof sc !== "string") console.log("isn't string.");
-        //if (!CSS.supports("color", sc)) console.log("isn't color.");
-        //if (sc !== null || sc.length !== 7) console.log("isn't exact length.");
         return typeof sc !== "string" || !CSS.supports("color", sc) || sc.length !== 7;
     }
 
@@ -59,17 +60,44 @@ const _sc_init = () => {
 
     MPP.client.on('custom', msg => {
         if (msg.data.sc !== undefined) {
-            //console.log(msg.data.sc, msg.p);
             let sc = msg.data.sc;
             let participant = MPP.client.findParticipantById(msg.p);
 
             if (_sc_colorInvalid(sc)) sc = participant.color;
-            if (_sc_colorInvalid(sc)) console.log("color is invalid.");
 
             participant.nameDiv.style.background = `linear-gradient(${participant.color}, ${sc})`;
             participant.cursorDiv.getElementsByClassName("name")[0].style.background = `linear-gradient(${participant.color}, ${sc})`;
 
-            participant.nameDiv.title = "This user is using Second Color";
+            if (participant.tag === undefined)
+                participant.nameDiv.title = "This user is using Second Color."; else switch (participant.tag.text) {
+                default:
+                case '':
+                case undefined:
+                    participant.nameDiv.title = "This user is using Second Color.";
+                    break;
+
+                case 'BOT':
+                    participant.nameDiv.title = "This is an authorized bot, which is using Second Color.";
+                    break;
+
+                case 'MOD':
+                    participant.nameDiv.title = "This user is an official moderator of the site that is using Second Color.";
+                    break;
+
+                case 'ADMIN':
+                    participant.nameDiv.title = "This user is an official administrator of the site that is using Second Color.";
+                    break;
+
+                case 'OWNER':
+                    participant.nameDiv.title = "This user is the owner of the site and is using Second Color.";
+                    break;
+
+                case 'MEDIA':
+                    participant.nameDiv.title = "This is a well known person on Twitch, Youtube, or another platform and is using Second Color.";
+                    break;
+            }
+            
+            window._sc_users[participant._id] = participant.name;
 
             if (_sc_colorInvalid(window.localStorage.getItem("secondColor"))) window.localStorage.setItem("secondColor", MPP.client.getOwnParticipant().color);
             let _sc = window.localStorage.getItem("secondColor");
@@ -88,7 +116,6 @@ const _sc_init = () => {
         MPP.client.sendArray([{m: "userset", set: {name: name, color: fcolor}}]);
         if (scolor !== window.localStorage.getItem("secondColor")) _sc_sendColor(scolor, true);
 
-        //participant.nameDiv.style.background = `linear-gradient(${participant.color}, ${scolor})`;
         participant.nameDiv.style.background = `linear-gradient(${fcolor}, ${scolor})`;
     });
 
@@ -114,7 +141,7 @@ const _sc_init = () => {
 
         _button.innerText = "Invert";
         _button.setAttribute("class", "ugly-button");
-        _button.style = "margin-left: 10px; width: 50px; height: 27px; user-select: none";
+        _button.style = "margin-left: 10px; width: 50px; height: 27px; user-select: none; color: white";
 
         _button.onclick = () => {
             let ___yes = $("#rename p .color")[0].value;
@@ -127,6 +154,19 @@ const _sc_init = () => {
 
     _sc_createButtons();
 
+    setTimeout(() => {
+        fetch(new Request("https://raw.githubusercontent.com/mpp-firefox/mpp-scripts/main/_sc_version.txt")).then(response => response.text().then(text => {
+            _sc_actualVersion = text.trim();
+            if (_sc_actualVersion !== _sc_version) {
+                let _sc_notification = new MPP.Notification({
+                    title: "Your Second Color version is outdated!",
+                    text: `You have ${_sc_version} while the latest is ${_sc_actualVersion}! Please get the new version from: https://github.com/mpp-firefox/mpp-scripts`, target: "#piano", duration: 10000
+                });
+            }
+        }));
+        
+    }, 3000);
+    
 };
 
 const _sc_mppExists = time => {
