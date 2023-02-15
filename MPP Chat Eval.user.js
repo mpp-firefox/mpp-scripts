@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MPP Chat Eval
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Send result of "> input" to chat
 // @author       MPP Firefox
 // @match        https://multiplayerpiano.com/*
@@ -15,10 +15,10 @@ const _ce_init = () => {
         if (e.p._id === MPP.client.getOwnParticipant()._id && e.a.indexOf("> ") === 0) {
             let thing;
             try {
-                thing = eval(e.a.substr(2)).toString();
+                thing = eval(e.a.substr(2));
             } catch(err) { thing = err.message.toString() }
 
-            MPP.client.sendArray([{m: "a", message: thing}]);
+            MPP.client.sendArray([{m: "a", message: thing.toString()}]);
         }
     });
 }
